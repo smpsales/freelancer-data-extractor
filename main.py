@@ -3,6 +3,9 @@
 #  Description: Script to export data from a Discord server
 #  License: GNU General Public License v3.0
 
+# update: 2025-05-01
+#  - Added functionality to export freelancer applications to a CSV file
+
 import os
 import csv
 import sys
@@ -122,6 +125,34 @@ class ExportClient(discord.Client):
             csv_writer.writerows(csv_rows)
 
         logger.info("CSV export completed successfully.")
+        
+        logger.info("Exporting freelancer App names...")
+        category = guild.get_channel(1325188014573617203)
+        if not category:
+            logger.warning("Category with ID 1325188014573617203 not found.")
+        else:
+            channel_names = []
+            for channel in category.channels:
+                if "-" in channel.name:
+                    processed_name = channel.name.split("-", 1)[1]
+                else:
+                    processed_name = channel.name
+                
+                channel_names.append({
+                    "ChannelName": channel.name,
+                    "ProcessedName": processed_name,
+                })
+            
+            channel_csv_path = os.path.join(self.output_dir, "freelancer_apps.csv")
+            logger.info(f"Saving Freelancer Apps CSV to {channel_csv_path}...")
+            
+            with open(channel_csv_path, mode="w", newline="", encoding="utf-8") as csv_file:
+                csv_writer = csv.DictWriter(csv_file, fieldnames=["ChannelName", "ProcessedName"])
+                csv_writer.writeheader()
+                csv_writer.writerows(channel_names)
+            
+            logger.info("freelancer app names CSV export completed successfully.")
+        
         await self.close()
 
 
